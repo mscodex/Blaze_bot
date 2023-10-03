@@ -2,12 +2,12 @@
 contact: https://t.me/mscodex
 
 # Configuration
-In bot_blaze_double.py  
+##In bot_blaze_double.py  
   self.token = "" # config  
   self.chat_id = "" # config  
 
 # Strategy
-In _blaze_estrategy.csv
+##In _blaze_estrategy.csv
 
 Exemple: X-10-P-V-B-1=P  
   X - Any number or color.  
