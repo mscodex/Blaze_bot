@@ -1,38 +1,76 @@
 import datetime
 import requests
 import telebot
+import pwinput
 import time
 import json
 import csv
 
-
 class WebScraper:
     
     def __init__(self):
-        # EDIT!
         self.game = "Blaze Double"
         self.token = "" # config
         self.chat_id = "" # config
         self.url_API = "https://blaze-1.com/api/roulette_games/recent"
-        self.gales = 2
-        self.protection = True
         self.link = "[Clique aqui!](blaze.com/r/0aJYR6)"
-
-        # MAYBE EDIT!
+        self.protection = False
+        self.gale_branco = False
+        self.gales = 0
         self.win_results = 0
         self.branco_results = 0
         self.loss_results = 0
         self.max_hate = 0
         self.win_hate = 0
-
-        # NO EDIT!
+        self.entrada_inicial = 0
+        self.branco_inicial = 0
+        self.value_color = 0
+        self.value_branco = 0
         self.count = 0
         self.analisar = True
         self.direction_color = "None"
         self.message_delete = False
-        self.bot = telebot.TeleBot(token=self.token, parse_mode="MARKDOWN")
+        self.bot = telebot.TeleBot(token=self.token, parse_mode="MARKDOWN", disable_web_page_preview=True)
         self.date_now = str(datetime.datetime.now().strftime("%d/%m/%Y"))
         self.check_date = self.date_now
+  
+    def login(self, email, password):
+        try:
+            url = requests.get(
+            f"http://127.0.0.1:3333/login?email={email}&senha={password}")
+
+            if url.status_code == 500:
+                print("Login failed")
+                return False
+            elif url.status_code == 200:
+                print(url.text)
+                return True
+        except:
+            print("Servidor Off")
+            return False
+            
+    def apostar(self, value_color, value_branco):
+
+        if self.direction_color == '🔴':
+            color = 'v'
+        
+        elif self.direction_color == '⚫️':
+            color = 'p'
+        
+        else:
+            color = 'b'
+
+        url = requests.get(f"http://127.0.0.1:3333/bet?color={color}&value={value_color}")
+
+        if self.protection == True:
+            url = requests.get(f"http://127.0.0.1:3333/bet?color=b&value={value_branco}")
+
+
+        if url.status_code == 500:
+            return False
+        
+        elif url.status_code == 200:
+            return url.text 
 
     def restart(self):
         if self.date_now != self.check_date:
@@ -63,6 +101,9 @@ class WebScraper:
             return False
 
     def results(self):
+        self.value_color = self.entrada_inicial
+        self.value_branco = self.branco_inicial
+
         if self.win_results + self.branco_results + self.loss_results != 0:
             a = (
                 100
@@ -73,18 +114,13 @@ class WebScraper:
             a = 0
         self.win_hate = f"{a:,.2f}%"
 
-        self.bot.send_message(
-            chat_id=self.chat_id,
-            text=(
-                f"""
+        self.bot.send_message(chat_id=self.chat_id,text=(f"""
 
 ► PLACAR = ✅{self.win_results} | ⚪️{self.branco_results} | 🚫{self.loss_results} 
 ► Consecutivas = {self.max_hate}
 ► Assertividade = {self.win_hate}
     
-    """
-            ),
-        )
+    """))
         return
 
     def alert_sinal(self):
@@ -100,8 +136,14 @@ class WebScraper:
 
     def alert_gale(self):
         self.message_ids = self.bot.send_message(
-            self.chat_id, text=f"""⚠️ Vamos para o {self.count}ª GALE"""
-        ).message_id
+            self.chat_id, text=f"""⚠️ Vamos para o {self.count}ª GALE""").message_id
+
+        if self.gale_branco:
+            self.value_branco = self.value_branco * 2
+
+        self.value_color = self.value_color * 2
+
+        self.apostar(self.value_color, self.value_branco)
         self.message_delete = True
         return
 
@@ -112,24 +154,18 @@ class WebScraper:
 
     def send_sinal(self):
         self.analisar = False
-        self.bot.send_message(
-            chat_id=self.chat_id,
-            text=(
-                f"""
-
+        self.bot.send_message(chat_id=self.chat_id,text=(f"""
 🎲 *ENTRADA CONFIRMADA!*
 
 🎰 Apostar no {self.direction_color}
 ⚪️ Proteger no Branco
 🔁 Fazer até {self.gales} gales
 
-📱 *{self.game}* """
-                f"{self.link}"
-                """
+📱 *{self.game}* 
 
-    """
-            ),
-        )
+"""))
+        
+        self.apostar(self.value_color, self.value_branco)
         return
 
     def martingale(self, result):
@@ -200,6 +236,46 @@ class WebScraper:
 
     def start(self):
         check = []
+
+        while True:
+            Email = input("Email: ")
+            Password = pwinput.pwinput(prompt="Password: ")
+            login = self.login(Email, Password)
+            if login:
+                try:
+                    self.entrada_inicial = float(input("Aposta inicial: "))
+                    self.value_color = self.entrada_inicial
+                    self.gales = int(input("Quantos martingale: "))
+                    proteger = input("Proteção no Branco? - s/n: ")
+
+                    if proteger == 's':
+                        self.protection = True
+                        self.branco_inicial = float(input("Aposta no Branco: "))
+                        self.value_branco = self.branco_inicial
+                        gale_branco = input("Martingale no Branco? - s/n: ")
+                        
+                        if gale_branco == 's':
+                            self.gale_branco = True
+                        
+                        elif gale_branco == 'n':
+                            self.gale_branco = False
+                        
+                        else:
+                            print("Error configurations, try again!")
+                            continue
+                    elif proteger == 'n':
+                        self.protection = False
+                    
+                    else:
+                        print("Error configurations, try again!")
+                        continue
+                except:
+                    print("Error configurations, try again!")
+                    continue
+                break
+            else:
+                continue
+
         while True:
             try:
                 self.date_now = str(datetime.datetime.now().strftime("%d/%m/%Y"))
@@ -209,8 +285,6 @@ class WebScraper:
 
                 response = requests.get(self.url_API)
                 json_data = json.loads(response.text)
-
-
 
                 for i in json_data:
                     results.append(i['roll'])
@@ -246,7 +320,7 @@ class WebScraper:
         # EDITAR ESTRATÉGIAS
         elif self.analisar == True:
             # ESTRATÉGIAS COM BASE NO CSV
-            with open("bot_blaze_estrategy.csv", newline="") as f:
+            with open("_blaze_estrategy.csv", newline="") as f:
                 reader = csv.reader(f)
 
                 ESTRATEGIAS = []
