@@ -2,9 +2,9 @@
 contact: https://t.me/mscodex
 
 # Configuration
--In bot_blaze_double.py
--self.token = "" # config
--self.chat_id = "" # config
+In bot_blaze_double.py
+self.token = "" # config
+self.chat_id = "" # config
 
 # Strategy
 In _blaze_estrategy.csv
