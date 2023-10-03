@@ -8,7 +8,7 @@
 # Strategy
       In _blaze_estrategy.csv  
 
-      Exemple: X-10-P-V-B-1=P  
+      Example: X-10-P-V-B-1=P  
          X - Any number or color.  
          10 - number 10.  
          P -  color black  
