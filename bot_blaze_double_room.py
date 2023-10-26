@@ -1,6 +1,7 @@
 import datetime
 import requests
 import telebot
+import pwinput
 import time
 import json
 import csv
@@ -11,7 +12,7 @@ class WebScraper:
         self.game = "Blaze Double"
         self.token = "" # config
         self.chat_id = "" # config
-        self.url_API = "https://blaze-1.com/api/roulette_games/recent"
+        self.url_API = "https://blaze-4.com/api/roulette_games/recent"
         self.link = "[Clique aqui!](blaze.com/r/0aJYR6)"
         self.protection = True
         self.gales = 2
